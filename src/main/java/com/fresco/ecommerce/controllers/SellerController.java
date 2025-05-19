@@ -3,6 +3,7 @@ package com.fresco.ecommerce.controllers;
 import java.util.List;
 import java.util.Optional;
 
+import com.fresco.ecommerce.config.JwtUtil;
 import com.fresco.ecommerce.models.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fresco.ecommerce.config.JwtUtil;
 import com.fresco.ecommerce.models.Product;
 import com.fresco.ecommerce.repo.CategoryRepo;
 import com.fresco.ecommerce.repo.ProductRepo;
@@ -42,7 +42,7 @@ public class SellerController {
 	@PostMapping("/product")
 	public ResponseEntity<Object> postProduct(@RequestBody Product p) {
 		p.setCategory(categoryRepo.findByCategoryName(p.getCategory().getCategoryName()).get());
-		p.setSeller(userRepo.findByUsername(jwtUtil.getCurrentUser()).get());
+		p.setSeller(userRepo.findByUsername(JwtUtil.getPrincipal()).get());
 		Product p1 = productRepo.saveAndFlush(p);
 		 // Manually construct the URL for the newly created resource
         String newResourceUrl = "http://localhost:8000/api/auth/seller/product/" + p1.getProductId();
@@ -55,14 +55,14 @@ public class SellerController {
 
 	@GetMapping("/product")
 	public ResponseEntity<Object> getAllProducts() {
-		List<Product> productList  = productRepo.findBySellerUserId(userRepo.findByUsername(jwtUtil.getCurrentUser()).get().getUserId());
+		List<Product> productList  = productRepo.findBySellerUserId(userRepo.findByUsername(JwtUtil.getPrincipal()).get().getUserId());
 		return new ResponseEntity<Object>(productList,HttpStatus.OK);
 	}
 
 	@GetMapping("/product/{productId}")
 	public ResponseEntity<Object> getProduct(@PathVariable Integer productId) {
 		
-		Optional<Product> p = productRepo.findBySellerUserIdAndProductId(userRepo.findByUsername(jwtUtil.getCurrentUser()).get().getUserId(), productId);
+		Optional<Product> p = productRepo.findBySellerUserIdAndProductId(userRepo.findByUsername(JwtUtil.getPrincipal()).get().getUserId(), productId);
 		if(p.isPresent()) {
 			return new ResponseEntity<Object>(p.get(),HttpStatus.OK);
 		}
@@ -71,7 +71,7 @@ public class SellerController {
 
 	@PutMapping("/product")
 	public ResponseEntity<Object> putProduct(@RequestBody Product p) {
-		UserEntity userEntity = userRepo.findByUsername(jwtUtil.getCurrentUser()).get();
+		UserEntity userEntity = userRepo.findByUsername(JwtUtil.getPrincipal()).get();
 		Optional<Product> p1 = productRepo.findBySellerUserIdAndProductId(userEntity.getUserId(), p.getProductId());
 		if (p1.isPresent()) {
 			System.out.println(p1);
@@ -87,7 +87,7 @@ public class SellerController {
 
 	@DeleteMapping("/product/{productId}")
 	public ResponseEntity<Product> deleteProduct(@PathVariable Integer productId) {
-		UserEntity userEntity = userRepo.findByUsername(jwtUtil.getCurrentUser()).get();
+		UserEntity userEntity = userRepo.findByUsername(JwtUtil.getPrincipal()).get();
 		Optional<Product> p1 = productRepo.findBySellerUserIdAndProductId(userEntity.getUserId(),productId);
 		if (p1.isPresent()) {
 			productRepo.deleteById(productId);

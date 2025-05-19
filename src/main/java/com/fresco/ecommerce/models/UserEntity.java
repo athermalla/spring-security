@@ -20,10 +20,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
-public class UserEntity implements UserDetails {
+public class UserEntity  {
 	private static final long serialVersionUID = 5536306799835655715L;
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer userId;
 	@Column(unique = true)
 	private String username;
@@ -83,29 +83,5 @@ public class UserEntity implements UserDetails {
 				+ "]";
 	}
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return this.roles.stream().map(r -> new RoleGrantedAuthority(r.name())).collect(Collectors.toList());
-	}
-
-	@Override
-	public boolean isAccountNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isAccountNonLocked() {
-		return true;
-	}
-
-	@Override
-	public boolean isCredentialsNonExpired() {
-		return true;
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return true;
-	}
 
 }

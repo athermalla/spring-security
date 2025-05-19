@@ -2,6 +2,7 @@ package com.fresco.ecommerce.controllers;
 
 import java.util.List;
 
+import com.fresco.ecommerce.config.JwtUtil;
 import com.fresco.ecommerce.models.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fresco.ecommerce.config.JwtUtil;
 import com.fresco.ecommerce.models.Product;
 import com.fresco.ecommerce.repo.ProductRepo;
 
@@ -25,7 +25,7 @@ import com.fresco.ecommerce.repo.ProductRepo;
 public class PublicController {
 	
 	@Autowired
-	private  JwtUtil jwtUtil;
+	private JwtUtil jwtUtil;
 	
 	@Autowired
 	private AuthenticationManager authenticationManager;
@@ -46,7 +46,7 @@ public class PublicController {
 		Authentication authentication = authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(userEntity.getUsername(), userEntity.getPassword()));
 		if (authentication.isAuthenticated()) {
-			return  new ResponseEntity<>(jwtUtil.generateToken(userEntity.getUsername()),HttpStatus.OK) ;
+			return  new ResponseEntity<>(jwtUtil.createToken(userEntity.getUsername()),HttpStatus.OK) ;
 		}
 		return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 	}

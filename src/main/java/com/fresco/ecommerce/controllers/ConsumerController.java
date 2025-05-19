@@ -3,6 +3,7 @@ package com.fresco.ecommerce.controllers;
 import java.util.List;
 import java.util.Optional;
 
+import com.fresco.ecommerce.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fresco.ecommerce.config.JwtUtil;
 import com.fresco.ecommerce.models.Cart;
 import com.fresco.ecommerce.models.CartProduct;
 import com.fresco.ecommerce.models.Product;
@@ -46,7 +46,7 @@ public class ConsumerController {
 	@GetMapping("/cart")
 	public ResponseEntity<Object> getCart() {
 
-		Optional<Cart> cart = cartRepo.findByUserEntityUsername(jwtUtil.getCurrentUser());
+		Optional<Cart> cart = cartRepo.findByUserEntityUsername(JwtUtil.getPrincipal());
 		if (cart.isPresent()) {
 			return new ResponseEntity<>(cart.get(), HttpStatus.OK);
 		}
@@ -55,7 +55,7 @@ public class ConsumerController {
 
 	@PostMapping("/cart")
 	public ResponseEntity<Object> postCart(@RequestBody Product p) {
-		Optional<Cart> cart = cartRepo.findByUserEntityUsername(jwtUtil.getCurrentUser());
+		Optional<Cart> cart = cartRepo.findByUserEntityUsername(JwtUtil.getPrincipal());
 		if (cart.isPresent()) {
 			Optional<Product> p1 = productRepo.findById(p.getProductId());
 			if(p1.isEmpty()) {
@@ -88,7 +88,7 @@ public class ConsumerController {
 	@PutMapping("/cart")
 	public ResponseEntity<Object> putCart(@RequestBody CartProduct cp) {
 		
-		Optional<CartProduct> cp1 = cartProductRepo.findByCartUserEntityUserIdAndProductProductId(userRepo.findByUsername(jwtUtil.getCurrentUser()).get().getUserId() , cp.getProduct().getProductId());
+		Optional<CartProduct> cp1 = cartProductRepo.findByCartUserEntityUserIdAndProductProductId(userRepo.findByUsername(JwtUtil.getPrincipal()).get().getUserId() , cp.getProduct().getProductId());
 		if(cp1.isEmpty()) {
 			if(cp.getQuantity()>0) {
 				cartProductRepo.save(cp);
@@ -98,7 +98,7 @@ public class ConsumerController {
 		else {
 			CartProduct cp2 = cp1.get();
 			if (cp.getQuantity()<=0) {
-				cartProductRepo.deleteByCartUserEntityUserIdAndProductProductId(userRepo.findByUsername(jwtUtil.getCurrentUser()).get().getUserId() , cp.getProduct().getProductId());
+				cartProductRepo.deleteByCartUserEntityUserIdAndProductProductId(userRepo.findByUsername(JwtUtil.getPrincipal()).get().getUserId() , cp.getProduct().getProductId());
 				return new ResponseEntity<Object>(HttpStatus.OK);
 			}
 			cp2.setQuantity(cp.getQuantity());
@@ -110,7 +110,7 @@ public class ConsumerController {
 
 	@DeleteMapping("/cart")
 	public ResponseEntity<Object> deleteCart(@RequestBody Product p) {
-		Optional<CartProduct> cp1 = cartProductRepo.findByCartUserEntityUserIdAndProductProductId(userRepo.findByUsername(jwtUtil.getCurrentUser()).get().getUserId() , p.getProductId());
+		Optional<CartProduct> cp1 = cartProductRepo.findByCartUserEntityUserIdAndProductProductId(userRepo.findByUsername(JwtUtil.getPrincipal()).get().getUserId() , p.getProductId());
 		if(cp1.isPresent()) {
 			cartProductRepo.delete(cp1.get());
 			return new ResponseEntity<Object>(HttpStatus.OK);

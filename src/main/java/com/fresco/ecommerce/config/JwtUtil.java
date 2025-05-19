@@ -1,65 +1,49 @@
 package com.fresco.ecommerce.config;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.fresco.ecommerce.models.UserEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import com.fresco.ecommerce.service.UserAuthService;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import java.security.Key;
+import java.util.Date;
+
 @Component
 public class JwtUtil {
-	
-	private String signedSecretKey = "secretKey";
-	
-	@Autowired
-	private UserAuthService authService;
-	
-	public UserEntity getUser(final String token) {
-		Claims claims = Jwts
-				.parser()
-				.setSigningKey(signedSecretKey)
-				.parseClaimsJws(token)
-				.getBody();
-		
-		return authService.loadUserByUsername(claims.getSubject());
 
-	}
-	
-	public String generateToken(String username) {
-		Map<String, Object> claims = new HashMap<>();
-		return Jwts.builder()
-				.setClaims(claims)
-				.setSubject(username)
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
-				.signWith(SignatureAlgorithm.HS256, signedSecretKey)
-				.compact();
-	}
-	public boolean validateToken(final String token) {
-		if(Jwts.parser().setSigningKey(signedSecretKey).parseClaimsJws(token).getBody().getExpiration().after(new Date()) && getUser(token)!=null) {
-			return true;
-		}
-		return false;
-	}
-	
-	public String getCurrentUser() {
-	    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-	    if (authentication != null && authentication.isAuthenticated()) {
-	        Object principal = authentication.getPrincipal();
-	        if (principal instanceof UserDetails) {
-	            return ((UserDetails) principal).getUsername(); // Returns the username of the authenticated user
-	        } else {
-	            return principal.toString(); // If principal is just a username string (not UserDetails)
-	        }
-	    }
-	    return null; // No authenticated user
-	}
+    public static String secretKey = "121o12u78168716471h28ig28fg28iucb38ivug39og";
+
+    public static Key getKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+    }
+    public  String createToken(String username) {
+        return Jwts.builder()
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 *60 *5))
+                .setSubject(username)
+                .signWith(getKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+    public  boolean validateToken(String token) {
+        Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parse(token);
+
+        return true;
+    }
+    public  String extractUsername(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody().getSubject();
+
+    }
+    public static String getPrincipal() {
+        return ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+    }
 }
