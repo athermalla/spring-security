@@ -34,7 +34,12 @@ public class ApiSecurityConfig  {
 		http.csrf(customizer -> customizer.disable())
 
 				.authorizeHttpRequests(request -> request
-				.requestMatchers("/api/public/**","/h2-ui/**").permitAll()
+				.requestMatchers("/api/public/**","/h2-ui/**"
+						,"/swagger-ui/**","/v3/api-docs/**"
+//						,"swagger-ui/index.html"
+//						,"swagger-ui.html"
+//						,"swagger-resources","swagger-resources/**"
+						).permitAll()
 				.requestMatchers("/api/auth/consumer/**").hasAuthority("CONSUMER")
 				.requestMatchers("/api/auth/seller/**").hasAuthority("SELLER")
 				.anyRequest().authenticated())
@@ -42,7 +47,7 @@ public class ApiSecurityConfig  {
 		.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 		.exceptionHandling( x-> x.authenticationEntryPoint(entryPoint));
 
-		http.headers(h->h.frameOptions(f->f.sameOrigin()));
+	   	http.headers(h->h.frameOptions(f->f.sameOrigin()));
 
 			return http.build();
 	}

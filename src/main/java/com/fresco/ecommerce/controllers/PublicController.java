@@ -42,11 +42,15 @@ public class PublicController {
 
 	@PostMapping("/login")
 	public ResponseEntity<String> login(@RequestBody UserEntity userEntity) {
-		
-		Authentication authentication = authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(userEntity.getUsername(), userEntity.getPassword()));
-		if (authentication.isAuthenticated()) {
-			return  new ResponseEntity<>(jwtUtil.createToken(userEntity.getUsername()),HttpStatus.OK) ;
+
+		try {
+			Authentication authentication = authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(userEntity.getUsername(), userEntity.getPassword()));
+			if (authentication.isAuthenticated()) {
+				return new ResponseEntity<>(jwtUtil.createToken(userEntity.getUsername()), HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 		return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 	}

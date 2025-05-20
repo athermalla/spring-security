@@ -1,21 +1,11 @@
 package com.fresco.ecommerce;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -28,13 +18,11 @@ import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -43,9 +31,8 @@ import com.fresco.ecommerce.repo.ProductRepo;
 import com.fresco.ecommerce.repo.UserRepo;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
-@TestMethodOrder(OrderAnnotation.class)
 @AutoConfigureMockMvc
+@TestMethodOrder(OrderAnnotation.class)
 public class ECommerceApplicationTests {
 	@Autowired
 	MockMvc mvc;
@@ -60,7 +47,8 @@ public class ECommerceApplicationTests {
 	@Test
 	@Order(4)
 	public void productSearchStatus() throws Exception {
-		mvc.perform(get("/api/public/product/search").param("keyword", "tablet")).andExpect(status().is(200))
+		mvc.perform(get("/api/public/product/search").param("keyword", "tablet"))
+				.andExpect(status().is(200))
 				.andExpect(jsonPath("$", notNullValue()));
 	}
 
@@ -76,9 +64,9 @@ public class ECommerceApplicationTests {
 		MvcResult res = mvc.perform(get("/api/public/product/search").param("keyword", "tablet"))
 				.andExpect(status().is(200)).andReturn();
 		JSONArray arr = (JSONArray) new JSONParser().parse(res.getResponse().getContentAsString());
-		assert (arr.size() > 0);
+		assertEquals(true, arr.size() > 0);
 		for (Object obj : arr) {
-			assert (((JSONObject) obj).get("productName").toString().toLowerCase().contains("tablet"));
+			assertEquals(true, ((JSONObject) obj).get("productName").toString().toLowerCase().contains("tablet"));
 		}
 	}
 
@@ -88,9 +76,9 @@ public class ECommerceApplicationTests {
 		MvcResult res = mvc.perform(get("/api/public/product/search").param("keyword", "medicine"))
 				.andExpect(status().is(200)).andReturn();
 		JSONArray arr = (JSONArray) new JSONParser().parse(res.getResponse().getContentAsString());
-		assert (arr.size() > 0);
+		assertEquals(true, arr.size() > 0);
 		for (Object obj : arr) {
-			assert (((JSONObject) ((JSONObject) obj).get("category")).get("categoryName").toString().toLowerCase()
+			assertEquals(true, ((JSONObject) ((JSONObject) obj).get("category")).get("categoryName").toString().toLowerCase()
 					.contains("medicine"));
 		}
 	}
@@ -137,8 +125,9 @@ public class ECommerceApplicationTests {
 	@Test
 	@Order(12)
 	public void consumerGetCartWithValidJWT() throws Exception {
-		mvc.perform(get("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString()))
-				.andExpect(status().is(200)).andExpect(jsonPath("$.cartId", is(not(equalTo("")))))
+		mvc.perform(get("/api/auth/consumer/cart").header("Authorization", "Bearer "+loginHelper(c_u, p).getContentAsString()))
+				.andExpect(status().is(200))
+				.andExpect(jsonPath("$.cartId", is(not(equalTo("")))))
 				.andExpect(jsonPath("$.cartProducts[0].quantity", is(2)))
 				.andExpect(jsonPath("$.cartProducts[0].product.productName",
 						containsStringIgnoringCase("Crocin pain relief tablet")))
@@ -148,7 +137,7 @@ public class ECommerceApplicationTests {
 	@Test
 	@Order(13)
 	public void sellerApiWithConsumerJWT() throws Exception {
-		mvc.perform(get("/api/auth/seller/product").header("JWT", loginHelper(c_u, p).getContentAsString()))
+		mvc.perform(get("/api/auth/seller/product").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString()))
 				.andExpect(status().is(403));
 	}
 
@@ -162,8 +151,9 @@ public class ECommerceApplicationTests {
 	@Test
 	@Order(15)
 	public void sellerGetProductsWithValidJWT() throws Exception {
-		mvc.perform(get("/api/auth/seller/product").header("JWT", loginHelper(s_u, p).getContentAsString()))
-				.andExpect(status().is(200)).andExpect(jsonPath("$.[0].productId", is(not(equalTo("")))))
+		mvc.perform(get("/api/auth/seller/product").header("Authorization","Bearer "+ loginHelper(s_u, p).getContentAsString()))
+				.andExpect(status().is(200))
+				.andExpect(jsonPath("$.[0].productId", is(not(equalTo("")))))
 				.andExpect(jsonPath("$.[0].productName",
 						containsStringIgnoringCase("Apple iPad 10.2 8th Gen WiFi iOS Tablet")))
 				.andExpect(jsonPath("$.[0].category.categoryName", is("Electronics")));
@@ -172,7 +162,7 @@ public class ECommerceApplicationTests {
 	@Test
 	@Order(16)
 	public void consumerApiWithSellerJWT() throws Exception {
-		mvc.perform(get("/api/auth/consumer/cart").header("JWT", loginHelper(s_u, p).getContentAsString()))
+		mvc.perform(get("/api/auth/consumer/cart").header("Authorization", "Bearer "+loginHelper(s_u, p).getContentAsString()))
 				.andExpect(status().is(403));
 	}
 
@@ -194,7 +184,7 @@ public class ECommerceApplicationTests {
 	@Order(17)
 	public void sellerAddNewProduct() throws Exception {
 		createdURI = mvc
-				.perform(post("/api/auth/seller/product").header("JWT", loginHelper(s_u, p).getContentAsString())
+				.perform(post("/api/auth/seller/product").header("Authorization", "Bearer "+loginHelper(s_u, p).getContentAsString())
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(getProduct(0, "iPhone 11", 49000.0, 2, "Electronics").toJSONString()))
 				.andExpect(status().is(201)).andReturn().getResponse().getRedirectedUrl();
@@ -203,22 +193,22 @@ public class ECommerceApplicationTests {
 	@Test
 	@Order(18)
 	public void sellerCheckAddedNewProduct() throws Exception {
-		mvc.perform(get(new URL(createdURI).getPath()).header("JWT", loginHelper(s_u, p).getContentAsString()))
+		mvc.perform(get(new URL(createdURI).getPath()).header("Authorization", "Bearer "+loginHelper(s_u, p).getContentAsString()))
 				.andExpect(status().is(200)).andExpect(jsonPath("$.productId", is(3)))
 				.andExpect(jsonPath("$.productName", is("iPhone 11"))).andExpect(jsonPath("$.price", is(49000.0)))
 				.andExpect(jsonPath("$.category.categoryName", is("Electronics")));
 
-		mvc.perform(get("/api/auth/seller/product").header("JWT", loginHelper(s_u, p).getContentAsString()))
+		mvc.perform(get("/api/auth/seller/product").header("Authorization", "Bearer "+loginHelper(s_u, p).getContentAsString()))
 				.andExpect(status().is(200)).andExpect(content().string(containsString("iPhone 11")));
 	}
 
 	@Test
 	@Order(19)
 	public void sellerCheckProductFromAnotherSeller() throws Exception {
-		mvc.perform(get(new URL(createdURI).getPath()).header("JWT", loginHelper("glaxo", p).getContentAsString()))
+		mvc.perform(get(new URL(createdURI).getPath()).header("Authorization","Bearer "+ loginHelper("glaxo", p).getContentAsString()))
 				.andExpect(status().is(404));
 
-		mvc.perform(get("/api/auth/seller/product").header("JWT", loginHelper("glaxo", p).getContentAsString()))
+		mvc.perform(get("/api/auth/seller/product").header("Authorization","Bearer "+ loginHelper("glaxo", p).getContentAsString()))
 				.andExpect(status().is(200)).andExpect(content().string(not(containsString("iPhone 11"))));
 	}
 
@@ -226,28 +216,28 @@ public class ECommerceApplicationTests {
 	@Order(20)
 	public void sellerUpdateProduct() throws Exception {
 		String[] arr = createdURI.split("/");
-		mvc.perform(put("/api/auth/seller/product").header("JWT", loginHelper(s_u, p).getContentAsString())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics")
-						.toJSONString()))
+		mvc.perform(put("/api/auth/seller/product").header("Authorization","Bearer "+ loginHelper(s_u, p).getContentAsString())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics")
+								.toJSONString()))
 				.andExpect(status().is(200));
 
-		mvc.perform(get(new URL(createdURI).getPath()).header("JWT", loginHelper(s_u, p).getContentAsString()))
+		mvc.perform(get(new URL(createdURI).getPath()).header("Authorization","Bearer "+ loginHelper(s_u, p).getContentAsString()))
 				.andExpect(status().is(200))
 				.andExpect(jsonPath("$.productId", is(Integer.valueOf(arr[arr.length - 1]))))
 				.andExpect(jsonPath("$.productName", is("iPhone 12"))).andExpect(jsonPath("$.price", is(98000.0)))
 				.andExpect(jsonPath("$.category.categoryName", is("Electronics")));
 
-		mvc.perform(get("/api/auth/seller/product").header("JWT", loginHelper(s_u, p).getContentAsString()))
+		mvc.perform(get("/api/auth/seller/product").header("Authorization", "Bearer "+loginHelper(s_u, p).getContentAsString()))
 				.andExpect(status().is(200)).andExpect(content().string(containsString("iPhone 12")));
 	}
 
 	@Test
 	@Order(21)
 	public void sellerUpdateProductWithWrongProductId() throws Exception {
-		mvc.perform(put("/api/auth/seller/product").header("JWT", loginHelper(s_u, p).getContentAsString())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(getProduct(30, "iPhone 12", 98000.0, 2, "Electronics").toJSONString()))
+		mvc.perform(put("/api/auth/seller/product").header("Authorization","Bearer "+ loginHelper(s_u, p).getContentAsString())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(getProduct(30, "iPhone 12", 98000.0, 2, "Electronics").toJSONString()))
 				.andExpect(status().is(404));
 	}
 
@@ -255,16 +245,16 @@ public class ECommerceApplicationTests {
 	@Order(22)
 	public void consumerAddProductToCart() throws Exception {
 		String[] arr = createdURI.split("/");
-		mvc.perform(get("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString()))
+		mvc.perform(get("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString()))
 				.andExpect(content().string(not(containsString("iPhone 12"))));
 
-		mvc.perform(post("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics")
-						.toJSONString()))
+		mvc.perform(post("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics")
+								.toJSONString()))
 				.andExpect(status().is(200));
 
-		mvc.perform(get("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString()))
+		mvc.perform(get("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString()))
 				.andExpect(content().string(containsString("iPhone 12")));
 	}
 
@@ -273,10 +263,10 @@ public class ECommerceApplicationTests {
 	public void consumerAddProductToCartAgain() throws Exception {
 		String[] arr = createdURI.split("/");
 
-		mvc.perform(post("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics")
-						.toJSONString()))
+		mvc.perform(post("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics")
+								.toJSONString()))
 				.andExpect(status().is(409));
 	}
 
@@ -292,15 +282,16 @@ public class ECommerceApplicationTests {
 	public void consumerUpdateProductInCart() throws Exception {
 		String[] arr = createdURI.split("/");
 
-		mvc.perform(put("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(getCartProduct(
-						getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics"), 3)
+		mvc.perform(put("/api/auth/consumer/cart").header("Authorization", "Bearer "+loginHelper(c_u, p).getContentAsString())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(getCartProduct(
+								getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics"), 3)
 								.toJSONString()))
 				.andExpect(status().is(200));
 
-		mvc.perform(get("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString()))
-				.andExpect(status().is(200)).andExpect(jsonPath("$.cartId", is(not(equalTo("")))))
+		mvc.perform(get("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString()))
+				.andExpect(status().is(200))
+				.andExpect(jsonPath("$.cartId", is(not(equalTo("")))))
 				.andExpect(jsonPath("$.cartProducts[1].quantity", is(3)))
 				.andExpect(jsonPath("$.cartProducts[1].product.productName", containsStringIgnoringCase("iphone 12")))
 				.andExpect(jsonPath("$.cartProducts[1].product.category.categoryName", is("Electronics")));
@@ -311,15 +302,16 @@ public class ECommerceApplicationTests {
 	public void consumerUpdateProductInCartWithZeroQuantity() throws Exception {
 		String[] arr = createdURI.split("/");
 
-		mvc.perform(put("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(getCartProduct(
-						getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics"), 0)
+		mvc.perform(put("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(getCartProduct(
+								getProduct(Integer.valueOf(arr[arr.length - 1]), "iPhone 12", 98000.0, 2, "Electronics"), 0)
 								.toJSONString()))
 				.andExpect(status().is(200));
 
-		mvc.perform(get("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString()))
-				.andExpect(status().is(200)).andExpect(jsonPath("$.cartId", is(not(equalTo("")))))
+		mvc.perform(get("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString()))
+				.andExpect(status().is(200))
+				.andExpect(jsonPath("$.cartId", is(not(equalTo("")))))
 				.andExpect(jsonPath("$.cartProducts", hasSize(1)))
 				.andExpect(jsonPath("$.cartProducts[0].quantity", is(2)))
 				.andExpect(jsonPath("$.cartProducts[0].product.productName",
@@ -330,12 +322,12 @@ public class ECommerceApplicationTests {
 	@Test
 	@Order(26)
 	public void consumerDeleteProductInCart() throws Exception {
-		mvc.perform(delete("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString())
+		mvc.perform(delete("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(getProduct(2, "Crocin pain relief tablet", 10.0, 5, "Medicines").toJSONString()))
 				.andExpect(status().is(200));
 
-		mvc.perform(get("/api/auth/consumer/cart").header("JWT", loginHelper(c_u, p).getContentAsString()))
+		mvc.perform(get("/api/auth/consumer/cart").header("Authorization","Bearer "+ loginHelper(c_u, p).getContentAsString()))
 				.andExpect(status().is(200)).andExpect(jsonPath("$.cartId", is(not(equalTo("")))))
 				.andExpect(jsonPath("$.cartProducts", hasSize(0)));
 	}
@@ -344,11 +336,11 @@ public class ECommerceApplicationTests {
 	@Order(27)
 	public void sellerDeleteProduct() throws Exception {
 		String[] arr = createdURI.split("/");
-		mvc.perform(delete("/api/auth/seller/product/" + Integer.valueOf(arr[arr.length - 1])).header("JWT",
-				loginHelper(s_u, p).getContentAsString())).andExpect(status().is(200));
+		mvc.perform(delete("/api/auth/seller/product/" + Integer.valueOf(arr[arr.length - 1])).header("Authorization",
+				"Bearer "+loginHelper(s_u, p).getContentAsString())).andExpect(status().is(200));
 
-		mvc.perform(get("/api/auth/seller/product/" + Integer.valueOf(arr[arr.length - 1])).header("JWT",
-				loginHelper(s_u, p).getContentAsString())).andExpect(status().is(404));
+		mvc.perform(get("/api/auth/seller/product/" + Integer.valueOf(arr[arr.length - 1])).header("Authorization",
+				"Bearer "+loginHelper(s_u, p).getContentAsString())).andExpect(status().is(404));
 	}
 
 }
