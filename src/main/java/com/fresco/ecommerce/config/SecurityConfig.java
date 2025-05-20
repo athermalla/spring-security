@@ -53,7 +53,7 @@ public class SecurityConfig {
 
         http.csrf( c-> c.disable())
                 .authorizeHttpRequests( r -> r
-                        .requestMatchers("/api/public/**","/h2-ui/**").permitAll()
+                        .requestMatchers("/api/public/**","/h2-ui/**","/swagger-ui/**","/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/auth/consumer/**").hasAuthority("CONSUMER")
                         .requestMatchers("/api/auth/seller/**").hasAuthority("SELLER")
                         .anyRequest().authenticated())
